@@ -2,12 +2,18 @@
 #define ____CPP_SERIALIZER_JSON_SERIALIZER_H__
 #include "rapidjson/document.h"
 #include <stdint.h>
+#include <string>
+#include <vector>
+#include <list>
+#include <map>
 
 typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<>> RapidJsonValue;
 typedef rapidjson::Document RapidJsonDocument;
 
 //typedef RapidJsonDocument JsonDocument;
 //typedef RapidJsonValue JsonValue;
+
+#define CxxJsonValue_Self (const char*)-1
 
 template<class JsonValue = RapidJsonValue, class JsonDocument = RapidJsonDocument>
 class CxxJsonValueT
@@ -162,7 +168,7 @@ public:
   {
     return Get(name, *v);
   }
-
+  
   bool Get(const char* name, uint32_t& v)
   {
     JsonValue* json_value = Get_(name);
@@ -258,16 +264,140 @@ public:
     }
   }
 
+  template<typename T>
+  bool Get(const char* name, std::vector<T>* v)
+  {
+    JsonValue* json_value = Get_(name);
+    if (json_value == NULL || !json_value->IsArray())
+    {
+      v->clear();
+      return false;
+    }
+
+    v->reserve(json_value->Size());
+    for (size_t i = 0; i < json_value->Size(); i++)
+    {
+      RapidJsonValue& element = (*json_value)[i];
+      if (element.IsNull())
+      {
+        continue;
+      }
+
+      T element_value;
+      CxxJsonValue cxx_json_value(&element);
+      if (cxx_json_value.Get(CxxJsonValue_Self, &element_value))
+      {
+        v->push_back(element_value);
+      }
+    }
+
+    return true;
+  }
+
+  template<typename T>
+  bool Get(const char* name, std::list<T>* v)
+  {
+    JsonValue* json_value = Get_(name);
+    if (json_value == NULL || !json_value->IsArray())
+    {
+      v->clear();
+      return false;
+    }
+
+    for (size_t i = 0; i < json_value->Size(); i++)
+    {
+      RapidJsonValue& element = (*json_value)[i];
+      if (element.IsNull())
+      {
+        continue;
+      }
+
+      T element_value;
+      CxxJsonValue cxx_json_value(&element);
+      if (cxx_json_value.Get(CxxJsonValue_Self, &element_value))
+      {
+        v->push_back(element_value);
+      }
+    }
+
+    return true;
+  }
+
+  template<typename TValue>
+  bool Get(const char* name, std::map<std::string, TValue>* v)
+  {
+    JsonValue* json_value = Get_(name);
+    if (json_value == NULL || !json_value->IsObject())
+    {
+      v->clear();
+      return false;
+    }
+
+    JsonValue& map_value = *json_value;
+    for (rapidjson::Value::MemberIterator iter = map_value.MemberBegin();
+      iter != map_value.MemberEnd();
+      ++iter)
+    {
+      TValue value;
+      if (!CxxJsonValue::GetRapid(&iter->value, CxxJsonValue_Self, &value))
+      {
+        continue;
+      }
+
+      (*v)[iter->name.GetString()] = value;
+    }
+
+    return true;
+  }
+
+  template<typename IntType, typename TValue>
+  bool Get(const char* name, std::map<IntType, TValue>* v)
+  {
+    JsonValue* json_value = Get_(name);
+    if (json_value == NULL || !json_value->IsObject())
+    {
+      v->clear();
+      return false;
+    }
+
+    JsonValue& map_value = *json_value;
+    for (rapidjson::Value::MemberIterator iter = map_value.MemberBegin();
+      iter != map_value.MemberEnd();
+      ++iter)
+    {
+      TValue value;
+      if (!CxxJsonValue::GetRapid(&iter->value, CxxJsonValue_Self, &value))
+      {
+        continue;
+      }
+
+      (*v)[(IntType)_atoi64(iter->name.GetString())] = value;
+    }
+
+    return true;
+  }
+
   bool IsValid() const
   {
     return dom_ != NULL;
   }
 
 protected:
-  
+
+  template<typename T>
+  bool static GetRapid(JsonValue* json, const char* name, T* v)
+  {
+    CxxJsonValue cxx_json_value(json);
+    return cxx_json_value.Get(name, v);
+  }
 
   JsonValue* Get_(const char* name)
   {
+    if (name == CxxJsonValue_Self)
+    {
+      return dom_;
+    }
+
     JsonValue::MemberIterator iter = dom_->FindMember(name);
     if (iter != dom_->MemberEnd())
     {
