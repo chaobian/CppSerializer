@@ -1,0 +1,5 @@
+#ifndef ____CPP_SERIALIZER_JSON_SERIALIZER_H__
+#define ____CPP_SERIALIZER_JSON_SERIALIZER_H__
+
+
+#endif
