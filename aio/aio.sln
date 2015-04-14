@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{027B
 		..\include\xml_serializer.h = ..\include\xml_serializer.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rapidjson", "rapidjson", "{F169F3A5-6166-4CEC-8AA5-632BF9F4EB9B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -30,5 +32,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F169F3A5-6166-4CEC-8AA5-632BF9F4EB9B} = {027BFE58-A079-486C-B120-AB9B5EE4E087}
 	EndGlobalSection
 EndGlobal
