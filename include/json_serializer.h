@@ -40,13 +40,21 @@ public:
   template<typename T>
   bool Get(const char* name, T* v)
   {
-    return Get(name, *v);
+    JsonValue* json_value = Get_(name);
+    if (json_value != NULL && json_value->IsObject())
+    {
+      CxxJsonValue xxJsonValue(json_value);
+      return CxxJsonTraits::FromJson(&xxJsonValue, v);
+    }
+    else
+    {
+      return false;
+    }
   }
 
-  template<typename T, typename ReaderT>
-  bool Get(const char* name, T* v)
+  bool Get(const char* name, uint8_t* v)
   {
-    return ReaderT::FromJson(this, name, v);
+    return Get(name, *v);
   }
 
   bool Get(const char* name, uint8_t& v)
@@ -63,6 +71,11 @@ public:
       v = 0;
       return false;
     }
+  }
+
+  bool Get(const char* name, int8_t* v)
+  {
+    return Get(name, *v);
   }
 
   bool Get(const char* name, int8_t& v)
@@ -82,6 +95,11 @@ public:
     }
   }
 
+  bool Get(const char* name, uint16_t* v)
+  {
+    return Get(name, *v);
+  }
+
   bool Get(const char* name, uint16_t& v)
   {
     uint32_t v32;
@@ -96,6 +114,11 @@ public:
       v = 0;
       return false;
     }
+  }
+
+  bool Get(const char* name, int16_t* v)
+  {
+    return Get(name, *v);
   }
 
   bool Get(const char* name, int16_t& v)
@@ -115,6 +138,11 @@ public:
     }
   }
 
+  bool Get(const char* name, int32_t* v)
+  {
+    return Get(name, *v);
+  }
+
   bool Get(const char* name, int32_t& v)
   {
     JsonValue* json_value = Get_(name);
@@ -128,6 +156,11 @@ public:
       v = 0;
       return false;
     }
+  }
+
+  bool Get(const char* name, uint32_t* v)
+  {
+    return Get(name, *v);
   }
 
   bool Get(const char* name, uint32_t& v)
@@ -145,6 +178,11 @@ public:
     }
   }
 
+  bool Get(const char* name, int64_t* v)
+  {
+    return Get(name, *v);
+  }
+
   bool Get(const char* name, int64_t& v)
   {
     JsonValue* json_value = Get_(name);
@@ -158,6 +196,11 @@ public:
       v = 0;
       return false;
     }
+  }
+
+  bool Get(const char* name, uint64_t* v)
+  {
+    return Get(name, *v);
   }
 
   bool Get(const char* name, uint64_t& v)
@@ -175,6 +218,11 @@ public:
     }
   }
 
+  bool Get(const char* name, double* v)
+  {
+    return Get(name, *v);
+  }
+
   bool Get(const char* name, double& v)
   {
     JsonValue* json_value = Get_(name);
@@ -188,6 +236,11 @@ public:
       v = 0;
       return false;
     }
+  }
+
+  bool Get(const char* name, std::string* v)
+  {
+    return Get(name, *v);
   }
 
   bool Get(const char* name, std::string& v)
@@ -234,8 +287,8 @@ typedef CxxJsonValueT<> CxxJsonValue;
 
 namespace CxxJson
 {
-  template<typename T, typename ReaderT>
-  bool FromJson(const char* json_text, T* x){
+  template<typename T>
+  bool FromJsonText(const char* json_text, T* x){
     RapidJsonDocument d;
     d.Parse(json_text);
     if (d.HasParseError())
@@ -244,24 +297,18 @@ namespace CxxJson
     }
 
     CxxJsonValueT<> xx(&d);
-    return ReaderT::FromJson(&xx, x);
-  }
-
-  template<typename T>
-  bool FromJson(CxxJsonValueT<>* json_value, const char* name, T* x)
-  {
-    return T::FromJson(json_value, name, x);
+    return CxxJsonTraits::FromJson(&xx, x);
   }
 }
 
-#define JSON_SERIALIZE_TRAITS_NAME(struct_name) struct_name##_Json
+#define JSON_SERIALIZE_TRAITS_NAME(struct_name) CxxJsonTraits
 
 #define JSON_SERIALIZE_STRUCT_TRAITS_BEGIN(struct_name) \
-  struct JSON_SERIALIZE_TRAITS_NAME(struct_name) {\
-     static bool FromJson(const char* json_text, struct_name* x) {\
-      return CxxJson::FromJson<struct_name, JSON_SERIALIZE_TRAITS_NAME(struct_name)>(json_text, x);\
+  namespace JSON_SERIALIZE_TRAITS_NAME(struct_name) {\
+     inline bool FromJson(const char* json_text, struct_name* x) {\
+      return CxxJson::FromJsonText<struct_name>(json_text, x);\
      }\
-     static bool FromJson(CxxJsonValue* json_value, struct_name* x);\
+     bool FromJson(CxxJsonValue* json_value, struct_name* x);\
   };\
 
 #define CxxJsonDeserialize(text, struct_name, v) \
