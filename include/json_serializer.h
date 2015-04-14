@@ -19,11 +19,11 @@ template<class JsonValue = RapidJsonValue, class JsonDocument = RapidJsonDocumen
 class CxxJsonValueT
 {
 public:
-  CxxJsonValueT() : dom_()
+  CxxJsonValueT() : dom_(NULL), stackable_name_(NULL)
   {
   }
 
-  CxxJsonValueT(JsonValue* json_value)
+  CxxJsonValueT(JsonValue* json_value) : stackable_name_(NULL)
   {
     dom_ = json_value;
   }
@@ -411,6 +411,7 @@ protected:
 
 private:
   JsonValue* dom_;
+  const char* stackable_name_;
 };
 
 typedef CxxJsonValueT<> CxxJsonValue;

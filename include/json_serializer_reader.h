@@ -42,10 +42,15 @@
   bool JSON_SERIALIZE_TRAITS_NAME(struct_name)::FromJson(CxxJsonValue* json_value, struct_name* x) \
   { \
     bool __is_name_valid__ = false;\
+    const char* __struct_name_str__ = #struct_name;
 
+#define  SERIALIZE_STRUCT_TRAITS_MEMBER_VALIDATE(name) \
+  if (!__is_name_valid__) \
+    {\
+    CXX_SERIALIZER_LOG(__struct_name_str__, #name, serializer_error_not_found);\
+    return false; \
+    }
 
-#define  SERIALIZE_STRUCT_TRAITS_MEMBER_VALIDATE() \
-  if (!__is_name_valid__) return false;
 
 #define SERIALIZE_STRUCT_TRAITS_MEMBER(name) \
         {\
